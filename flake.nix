@@ -72,15 +72,33 @@
               src = "${zitadel-src}";
               modules = ./gomod2nix.toml;
               subPackages = [ "cmd/zitadel" ];
-              buildInputs = [
+              nativeBuildInputs = with pkgs; [
+                protobuf3_18
+                protoc-gen-grpc-web
+                protoc-gen-go
+                protoc-gen-go-grpc
+                go_1_17
+                go-bindata
+                protoc-gen-doc
+                statik
+              ] ++ [
                 grpc-gateway.defaultPackage.${system} 
                 protoc-gen-validate.defaultPackage.${system} 
                 setup 
                 gen-statik0 gen-grpc gen-statik1 gen-assets gen 
               ];
+              buildInput = [ pkgs.cockroachdb ];
               postConfigure = ''
                 source ${setup}/bin/setup
                 ${gen}/bin/gen
+              '';
+              buildPhase = ''
+                cd ./gopath/src/github.com/zitadel/zitadel/cmd/zitadel
+                go build .
+              '';
+              postBuild = ''
+                cd ./gopath/src/github.com/zitadel/zitadel/cmd/zitadel
+                mv zitadel $out/bin/.
               '';
             };
           };
