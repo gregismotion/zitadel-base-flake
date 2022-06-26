@@ -41,6 +41,7 @@
               name = "zitadel-base";
               src = "${zitadel-src}";
               modules = ./gomod2nix.toml;
+              subPackages = [ "zitadel" ];
             };
           };
 
