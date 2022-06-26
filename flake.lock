@@ -243,11 +243,11 @@
         "protoc-gen-validate-src": "protoc-gen-validate-src"
       },
       "locked": {
-        "lastModified": 1656241637,
-        "narHash": "sha256-zOhuEP2Z0SkpD9DgyKOyikY1BWvoqlU4tWg6Zc3ujG4=",
+        "lastModified": 1656257853,
+        "narHash": "sha256-gyRcsYwjAdmWi1ZRpFl75tqBlwUG5xn/S8vbJ/hQw2Q=",
         "owner": "thegergo02",
         "repo": "protoc-gen-validate-flake",
-        "rev": "28b87fa64fa3936efab03b70353c8b1ee1e8edc1",
+        "rev": "5f9a0d92dee2e0956e4c73bace22771bf85f630a",
         "type": "github"
       },
       "original": {
@@ -259,17 +259,18 @@
     "protoc-gen-validate-src": {
       "flake": false,
       "locked": {
-        "lastModified": 1652998186,
-        "narHash": "sha256-VDQOT6bTlSIIbK6vModsAbLfMStpxTHxgnEFJg3ZvCc=",
-        "owner": "envoyproxy",
-        "repo": "protoc-gen-validate",
-        "rev": "0e25aabb25c0709aff19aea176a1da13328b12fb",
-        "type": "github"
+        "lastModified": 1633024163,
+        "narHash": "sha256-hV9rxI1jks/qd3nA30wYulHLHNJaez9Dqz3H3WqMwJY=",
+        "ref": "refs/tags/v0.6.2",
+        "rev": "8c0f6372216272771488d63323787e86377aefe0",
+        "revCount": 225,
+        "type": "git",
+        "url": "https://github.com/envoyproxy/protoc-gen-validate"
       },
       "original": {
-        "owner": "envoyproxy",
-        "repo": "protoc-gen-validate",
-        "type": "github"
+        "ref": "refs/tags/v0.6.2",
+        "type": "git",
+        "url": "https://github.com/envoyproxy/protoc-gen-validate"
       }
     },
     "root": {

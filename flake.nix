@@ -24,7 +24,7 @@
           config = { allowUnfree = true;  }; # NOTE: needed for cockroachdb
         };
         
-        setup = (pkgs.writeScriptBin "setup" ''
+        setup = pkgs.writeScriptBin "setup" ''
           export GOPATH=$(pwd)/gopath
           export SRC_PATH=$GOPATH/src/github.com/zitadel/zitadel
 
@@ -43,10 +43,9 @@
           mkdir -p $SRC_PATH
           pushd $SRC_PATH
           cp -r ${zitadel-src}/* .
+          chmod -R +w $ZITADEL_PATH
           popd
-        '').overrideAttrs(old: {
-            buildCommand = "${old.buildCommand}\n patchShebangs $out";
-          });
+        '';
         gen-statik0 = (pkgs.writeScriptBin "gen-statik0" (builtins.readFile ./scripts/generate-statik0.sh)).overrideAttrs(old: {
             buildCommand = "${old.buildCommand}\n patchShebangs $out";
           });
@@ -59,9 +58,12 @@
         gen-assets = (pkgs.writeScriptBin "gen-assets" (builtins.readFile ./scripts/generate-assets.sh)).overrideAttrs(old: {
             buildCommand = "${old.buildCommand}\n patchShebangs $out";
           });
-        gen = (pkgs.writeScriptBin "gen" (builtins.readFile ./scripts/generate.sh)).overrideAttrs(old: {
-            buildCommand = "${old.buildCommand}\n patchShebangs $out";
-          });
+        gen = pkgs.writeScriptBin "gen" ''
+          ${gen-statik0}/bin/gen-statik0
+          ${gen-grpc}/bin/gen-grpc
+          ${gen-statik1}/bin/gen-statik1
+          ${gen-assets}/bin/gen-assets
+        '';
       in
       rec {
         packages = flake-utils.lib.flattenTree
@@ -69,7 +71,17 @@
               name = "zitadel-base";
               src = "${zitadel-src}";
               modules = ./gomod2nix.toml;
-              subPackages = [ "zitadel" ];
+              subPackages = [ "cmd/zitadel" ];
+              buildInputs = [
+                grpc-gateway.defaultPackage.${system} 
+                protoc-gen-validate.defaultPackage.${system} 
+                setup 
+                gen-statik0 gen-grpc gen-statik1 gen-assets gen 
+              ];
+              postConfigure = ''
+                source ${setup}/bin/setup
+                ${gen}/bin/gen
+              '';
             };
           };
 

@@ -10,7 +10,6 @@ curl https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/a
 curl https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/http.proto --create-dirs -o ${PROTO_INC_PATH}/google/api/http.proto
 curl https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/field_behavior.proto --create-dirs -o ${PROTO_INC_PATH}/google/api/field_behavior.proto
 
-chmod -R +w ${ZITADEL_PATH} # NOTE: maybe not a good idea?
 # copy zitadel proto files
 cp -r ${ZITADEL_PATH}/proto/* ${PROTO_INC_PATH}
 
