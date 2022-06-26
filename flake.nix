@@ -1,8 +1,10 @@
 {
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-21.11";
-    flake-utils.url = "github:numtide/flake-utils";
-    gomod2nix.url = "github:tweag/gomod2nix";
+    nixpkgs.url = github:nixos/nixpkgs/nixos-21.11;
+    flake-utils.url = github:numtide/flake-utils;
+    gomod2nix.url = github:tweag/gomod2nix;
+    grpc-gateway.url = github:thegergo02/grpc-gateway-flake;
+    protoc-gen-validate.url = github:thegergo02/protoc-gen-validate-flake;
     zitadel-src = {
       type = "git";
       flake = false;
@@ -12,7 +14,7 @@
   };
 
   outputs =
-    { self, nixpkgs, flake-utils, gomod2nix, zitadel-src }:
+    { self, nixpkgs, flake-utils, gomod2nix, grpc-gateway, protoc-gen-validate, zitadel-src }:
     let
       overlays = [ gomod2nix.overlays.default ];
     in flake-utils.lib.eachDefaultSystem (system:
@@ -46,7 +48,12 @@
 
         devShell =
           pkgs.mkShell {
-            buildInputs = [ pkgs.gomod2nix setup gen-grpc ];
+            buildInputs = [ 
+              pkgs.gomod2nix 
+              grpc-gateway.defaultPackage.${system} 
+              protoc-gen-validate.defaultPackage.${system} 
+              setup gen-grpc 
+            ];
             packages = with pkgs; [
               protobuf3_18
               protoc-gen-grpc-web

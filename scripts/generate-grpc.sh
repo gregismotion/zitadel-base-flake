@@ -41,8 +41,15 @@ go-bindata \
   -o ${ZITADEL_PATH}/internal/protoc/protoc-gen-authoption/templates.gen.go \
   ${ZITADEL_PATH}/internal/protoc/protoc-gen-authoption/templates
 
-# install authoption proto compiler
-#go install ${ZITADEL_PATH}/internal/protoc/protoc-gen-authoption
+AUTHOPTION_PATH=${ZITADEL_PATH}/internal/protoc/protoc-gen-authoption
+pushd ${AUTHOPTION_PATH}
+go generate generate.go
+#go generate authoption.go # FIXME: can't use this as command interface changed
+# taken from authoption/generate.go and modified
+protoc -I. -I$GOPATH/src --go-grpc_out=$GOPATH/src authoption/options.proto
+go build .
+popd
+PATH=${AUTHOPTION_PATH}:$PATH
 
 # output folder for openapi v2
 mkdir -p ${OPENAPI_PATH}
