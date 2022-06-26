@@ -19,11 +19,27 @@
       overlays = [ gomod2nix.overlays.default ];
     in flake-utils.lib.eachDefaultSystem (system:
       let
-        pkgs = import nixpkgs { inherit system overlays; };
+        pkgs = import nixpkgs { 
+          inherit system overlays; 
+          config = { allowUnfree = true;  }; # NOTE: needed for cockroachdb
+        };
         
         setup = (pkgs.writeScriptBin "setup" ''
           export GOPATH=$(pwd)/gopath
           export SRC_PATH=$GOPATH/src/github.com/zitadel/zitadel
+
+          export GATEWAY_VERSION=2.6.0
+          export VALIDATOR_VERSION=0.6.2
+
+          export PROTO_PATH=$(pwd)/protoext
+          export PROTO_INC_PATH=$PROTO_PATH/include
+          export PROTO_ZITADEL_PATH=$PROTO_INC_PATH/zitadel
+
+          export ZITADEL_PATH=$GOPATH/src/github.com/zitadel/zitadel
+          export DOCS_PATH=$ZITADEL_PATH/docs/apis/proto
+          export OPENAPI_PATH=$ZITADEL_PATH/openapi/v2
+          export GRPC_PATH=$ZITADEL_PATH/pkg/grpc
+
           mkdir -p $SRC_PATH
           pushd $SRC_PATH
           cp -r ${zitadel-src}/* .
@@ -31,7 +47,19 @@
         '').overrideAttrs(old: {
             buildCommand = "${old.buildCommand}\n patchShebangs $out";
           });
+        gen-statik0 = (pkgs.writeScriptBin "gen-statik0" (builtins.readFile ./scripts/generate-statik0.sh)).overrideAttrs(old: {
+            buildCommand = "${old.buildCommand}\n patchShebangs $out";
+          });
         gen-grpc = (pkgs.writeScriptBin "gen-grpc" (builtins.readFile ./scripts/generate-grpc.sh)).overrideAttrs(old: {
+            buildCommand = "${old.buildCommand}\n patchShebangs $out";
+          });
+        gen-statik1 = (pkgs.writeScriptBin "gen-statik1" (builtins.readFile ./scripts/generate-statik1.sh)).overrideAttrs(old: {
+            buildCommand = "${old.buildCommand}\n patchShebangs $out";
+          });
+        gen-assets = (pkgs.writeScriptBin "gen-assets" (builtins.readFile ./scripts/generate-assets.sh)).overrideAttrs(old: {
+            buildCommand = "${old.buildCommand}\n patchShebangs $out";
+          });
+        gen = (pkgs.writeScriptBin "gen" (builtins.readFile ./scripts/generate.sh)).overrideAttrs(old: {
             buildCommand = "${old.buildCommand}\n patchShebangs $out";
           });
       in
@@ -53,7 +81,8 @@
               pkgs.gomod2nix 
               grpc-gateway.defaultPackage.${system} 
               protoc-gen-validate.defaultPackage.${system} 
-              setup gen-grpc 
+              setup 
+              gen-statik0 gen-grpc gen-statik1 gen-assets gen 
             ];
             packages = with pkgs; [
               protobuf3_18
@@ -63,6 +92,8 @@
               go_1_17
               go-bindata
               protoc-gen-doc
+              cockroachdb
+              statik
             ];
           };
 

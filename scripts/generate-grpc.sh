@@ -2,19 +2,6 @@
 
 set -xeu
 
-# TODO: change . to ZITADEL_PATH
-
-GATEWAY_VERSION=2.6.0
-VALIDATOR_VERSION=0.6.2
-PROTO_PATH=$(pwd)/protoext
-PROTO_INC_PATH=${PROTO_PATH}/include
-PROTO_ZITADEL_PATH=${PROTO_INC_PATH}/zitadel
-
-ZITADEL_PATH=$GOPATH/src/github.com/zitadel/zitadel
-DOCS_PATH=${ZITADEL_PATH}/docs/apis/proto
-OPENAPI_PATH=${ZITADEL_PATH}/openapi/v2
-GRPC_PATH=${ZITADEL_PATH}/pkg/grpc
-
 # get proto files
 curl https://raw.githubusercontent.com/envoyproxy/protoc-gen-validate/v${VALIDATOR_VERSION}/validate/validate.proto --create-dirs -o ${PROTO_INC_PATH}/validate/validate.proto
 curl https://raw.githubusercontent.com/grpc-ecosystem/grpc-gateway/v${GATEWAY_VERSION}/protoc-gen-openapiv2/options/annotations.proto --create-dirs -o ${PROTO_INC_PATH}/protoc-gen-openapiv2/options/annotations.proto
