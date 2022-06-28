@@ -5,6 +5,11 @@
     gomod2nix.url = github:tweag/gomod2nix;
     grpc-gateway.url = github:thegergo02/grpc-gateway-flake;
     protoc-gen-validate.url = github:thegergo02/protoc-gen-validate-flake;
+    protoc-gen-authoption.url = github:thegergo02/protoc-gen-authoption-flake;
+    googleapis = {
+      flake = false;
+      url = github:googleapis/googleapis;
+    };
     zitadel-src = {
       type = "git";
       flake = false;
@@ -14,17 +19,24 @@
   };
 
   outputs =
-    { self, nixpkgs, flake-utils, gomod2nix, grpc-gateway, protoc-gen-validate, zitadel-src }:
+    { self, 
+      nixpkgs, 
+      flake-utils, 
+      gomod2nix, 
+      grpc-gateway, protoc-gen-validate, protoc-gen-authoption, googleapis,
+      zitadel-src }:
     let
       overlays = [ gomod2nix.overlays.default ];
     in flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs { 
           inherit system overlays; 
-          config = { allowUnfree = true;  }; # NOTE: needed for cockroachdb
+          config = { allowUnfree = true; }; # NOTE: needed for cockroachdb
         };
         
         setup = pkgs.writeScriptBin "setup" ''
+          set -xeu
+
           export GOPATH=$(pwd)/gopath
           export SRC_PATH=$GOPATH/src/github.com/zitadel/zitadel
 
@@ -39,11 +51,26 @@
           export DOCS_PATH=$ZITADEL_PATH/docs/apis/proto
           export OPENAPI_PATH=$ZITADEL_PATH/openapi/v2
           export GRPC_PATH=$ZITADEL_PATH/pkg/grpc
-
+          
+          # copy source to gopath
           mkdir -p $SRC_PATH
           pushd $SRC_PATH
+
           cp -r ${zitadel-src}/* .
           chmod -R +w $ZITADEL_PATH
+
+          # proto files
+          mkdir -p $PROTO_INC_PATH/validate
+          cp ${protoc-gen-validate.defaultPackage.${system}}/validate.proto $PROTO_INC_PATH/validate
+          mkdir -p $PROTO_INC_PATH/protoc-gen-openapiv2/options
+          cp ${grpc-gateway.defaultPackage.${system}}/openapiv2/annotations.proto $PROTO_INC_PATH/protoc-gen-openapiv2/options/.
+          cp ${grpc-gateway.defaultPackage.${system}}/openapiv2/openapiv2.proto $PROTO_INC_PATH/protoc-gen-openapiv2/options
+          mkdir -p $PROTO_INC_PATH/google/api
+          cp ${googleapis}/google/api/annotations.proto $PROTO_INC_PATH/google/api/.
+          cp ${googleapis}/google/api/http.proto $PROTO_INC_PATH/google/api/.
+          cp ${googleapis}/google/api/field_behavior.proto $PROTO_INC_PATH/google/api/.
+          cp -r $ZITADEL_PATH/proto/* $PROTO_INC_PATH/.
+
           popd
         '';
         gen-statik0 = (pkgs.writeScriptBin "gen-statik0" (builtins.readFile ./scripts/generate-statik0.sh)).overrideAttrs(old: {
@@ -84,6 +111,7 @@
               ] ++ [
                 grpc-gateway.defaultPackage.${system} 
                 protoc-gen-validate.defaultPackage.${system} 
+                protoc-gen-authoption.defaultPackage.${system} 
                 setup 
                 gen-statik0 gen-grpc gen-statik1 gen-assets gen 
               ];
@@ -91,14 +119,6 @@
               postConfigure = ''
                 source ${setup}/bin/setup
                 ${gen}/bin/gen
-              '';
-              buildPhase = ''
-                cd ./gopath/src/github.com/zitadel/zitadel/cmd/zitadel
-                go build .
-              '';
-              postBuild = ''
-                cd ./gopath/src/github.com/zitadel/zitadel/cmd/zitadel
-                mv zitadel $out/bin/.
               '';
             };
           };

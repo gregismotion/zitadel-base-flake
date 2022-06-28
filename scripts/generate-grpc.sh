@@ -1,17 +1,7 @@
 #!/bin/sh
-
 set -xeu
 
-# get proto files
-curl https://raw.githubusercontent.com/envoyproxy/protoc-gen-validate/v${VALIDATOR_VERSION}/validate/validate.proto --create-dirs -o ${PROTO_INC_PATH}/validate/validate.proto
-curl https://raw.githubusercontent.com/grpc-ecosystem/grpc-gateway/v${GATEWAY_VERSION}/protoc-gen-openapiv2/options/annotations.proto --create-dirs -o ${PROTO_INC_PATH}/protoc-gen-openapiv2/options/annotations.proto
-curl https://raw.githubusercontent.com/grpc-ecosystem/grpc-gateway/v${GATEWAY_VERSION}/protoc-gen-openapiv2/options/openapiv2.proto --create-dirs -o ${PROTO_INC_PATH}/protoc-gen-openapiv2/options/openapiv2.proto
-curl https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/annotations.proto --create-dirs -o ${PROTO_INC_PATH}/google/api/annotations.proto
-curl https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/http.proto --create-dirs -o ${PROTO_INC_PATH}/google/api/http.proto
-curl https://raw.githubusercontent.com/googleapis/googleapis/master/google/api/field_behavior.proto --create-dirs -o ${PROTO_INC_PATH}/google/api/field_behavior.proto
-
-# copy zitadel proto files
-cp -r ${ZITADEL_PATH}/proto/* ${PROTO_INC_PATH}
+echo "Generating GRPC code..."
 
 # generate go stub and grpc code for all files
 protoc \
@@ -27,15 +17,15 @@ go-bindata \
   -o ${ZITADEL_PATH}/internal/protoc/protoc-gen-authoption/templates.gen.go \
   ${ZITADEL_PATH}/internal/protoc/protoc-gen-authoption/templates
 
-AUTHOPTION_PATH=${ZITADEL_PATH}/internal/protoc/protoc-gen-authoption
-pushd ${AUTHOPTION_PATH}
-go generate generate.go
-#go generate authoption.go # FIXME: can't use this as command interface changed
-# taken from authoption/generate.go and modified
-protoc -I. -I$GOPATH/src --go-grpc_out=$GOPATH/src authoption/options.proto
-go build .
-popd
-PATH=${AUTHOPTION_PATH}:$PATH
+#AUTHOPTION_PATH=${ZITADEL_PATH}/internal/protoc/protoc-gen-authoption
+#pushd ${AUTHOPTION_PATH}
+#go generate generate.go
+#go-bindata -pkg main -o templates.gen.go templates
+#go generate authoption.go
+#protoc -I. -I$GOPATH/src --go-grpc_out=$GOPATH/src authoption/options.proto
+#go build .
+#popd
+#PATH=${AUTHOPTION_PATH}:$PATH
 
 # output folder for openapi v2
 mkdir -p ${OPENAPI_PATH}
@@ -155,3 +145,5 @@ protoc \
   -I=${PROTO_INC_PATH} \
   --doc_out=${DOCS_PATH} --doc_opt=${PROTO_ZITADEL_PATH}/docs/zitadel-md.tmpl,user.md \
   ${PROTO_ZITADEL_PATH}/user.proto
+
+echo "Generated GRPC code."
