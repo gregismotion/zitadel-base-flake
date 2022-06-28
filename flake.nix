@@ -7,6 +7,7 @@
     grpc-gateway.url = github:thegergo02/grpc-gateway-flake;
     protoc-gen-validate.url = github:thegergo02/protoc-gen-validate-flake;
     protoc-gen-authoption.url = github:thegergo02/protoc-gen-authoption-flake;
+    zitadel-assets-gen.url = github:thegergo02/zitadel-assets-gen-flake;
     googleapis = {
       flake = false;
       url = github:googleapis/googleapis;
@@ -25,6 +26,7 @@
       flake-utils, 
       gomod2nix, 
       grpc-gateway, protoc-gen-validate, protoc-gen-authoption, googleapis,
+      zitadel-assets-gen,
       zitadel-src }:
     let
       overlays = [ gomod2nix.overlays.default ];
@@ -81,7 +83,7 @@
           ${gen-statik0}/bin/gen-statik0
           ${gen-grpc}/bin/gen-grpc
           ${gen-statik1}/bin/gen-statik1
-          #${gen-assets}/bin/gen-assets
+          ${gen-assets}/bin/gen-assets
         '';
       in
       rec {
@@ -105,6 +107,7 @@
                 grpc-gateway.defaultPackage.${system} 
                 protoc-gen-validate.defaultPackage.${system} 
                 protoc-gen-authoption.defaultPackage.${system} 
+                zitadel-assets-gen.defaultPackage.${system} 
                 setup 
                 gen-statik0 gen-grpc gen-statik1 gen-assets gen 
               ];
